@@ -1,0 +1,419 @@
+1) In Entity class
+	add validation annotations to the properties
+	@Entity
+@Table(name = "VEHICLE")
+public class Vehicle {
+	@Id
+	@GeneratedValue(strategy = GenerationType.SEQUENCE)
+	private int id;
+	@Column(name = "name")
+	@Size(min = 5,message = "Minimum 5 chars.")
+	private String name;
+
+
+2) in JSP, 
+	<form:errors path="name" cssClass="error" />
+
+3) In controller, method
+	add @Valid annotation to ensure the method will validate.
+	and an arg called BindingResult
+
+	if(result.hasErrors)
+		//redirect to the same page. Error message automatically displayed based on annotation in entity
+
+
+public ModelAndView addVehicle(@Valid @ModelAttribute("vehicle")Vehicle vehicle, BindingResult result)
+	{	
+		int x=10;
+		int y=0;
+		if(x==y)
+			throw new NumberFormatException("This is my arith exception");
+		result.addError(new FieldError("vehicle", "name", "Name is invalid according to my rule"));
+		if(result.hasErrors())
+		{
+			System.out.println("Error is there");
+			ModelAndView mv=new ModelAndView();
+			mv.setViewName("vehicle");			
+			List<Vehicle> vehicles = vs.read();
+			mv.addObject("vehicles", vehicles);
+			return mv;
+		}
+
+-----------------------------------------------------------------------------------
+Spring forms Excpetion Handler
+1) configure the exception handler in spring initializer config file
+	<bean class = "org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+      <property name = "exceptionMappings">
+         <props>
+            <prop key = "java.lang.ArithmeticException">
+               arithmetic
+            </prop>
+            <prop key="java.lang.NumberFormatException">
+            	number
+            </prop>
+         </props>
+      </property>
+      <property name = "defaultErrorView" value = "error"/>		<!-- error.jsp -->
+   </bean>
+2) Declare the exception handler in the controller method
+	@RequestMapping(method = RequestMethod.POST, value = "/save", params = "add")
+	@ExceptionHandler({NumberFormatException.class, ArithmeticException.class})
+	public ModelAndView addVehicle(@Valid @ModelAttribute("vehicle")Vehicle vehicle, BindingResult result)
+	{	
+3) Inside the controller method, in some situation, we throw an exception.
+	if that exception is defined in the @Exception handler, then the handling page is found from the config
+	and redirect to that page
+
+-----------------------------
+Task:
+	use the starter project i provide
+		download from git. unzip as folder. 
+		import using
+			"existing maven project" option,
+			navigate to the folder that contain "pom.xml"
+	create / add the model entity class, dao
+	create a controller for that entity
+	
+	1) use validation annotations in the entity class like
+		@NotNull
+		@Size
+		@Min
+		@Max
+		@Pattern		(reg exp)
+	2) introduce new validation error messages in the controller using
+		result.addError
+	3) Create an error page
+	4) configure the error page mapping with some exceptions like
+		NumberFormatException
+		or
+		ArithmeticException
+	5) use @ExceptionHandler in the controller method and
+		throw an exception 
+		and see if it redirects to the  error page
+
+
+----------------------------------------------------------------------------
+Controller vs RestController
+
+In controller methods, the String which the method return is "URL" by default
+	return "hello";		//what does index means? it is the url (hello.jsp)
+
+some times, we use @ResponseBody annotation to change this behavior.
+	in that case,
+	return "hello" means?	//hello will be printed as output
+
+In Rest controller, 
+	return "hello";		//means?	 hello will be printed as output
+
+Rest Controllers are used by external applications.
+	So we do not return "url"
+
+Just recollect what we did in ajax?
+	the javascript/jquery function called a servlet.
+	the servlet output came back as a response to the javascript/jquery function
+
+same way, the Rest controllers produce output. Not return a url
+
+@RestController
+public class MyRestController {
+	
+	@RequestMapping("/hello")
+	public String hello()
+	{
+		return "hello";
+	}
+
+}
+
+
+Rest controllers of Spring framework serve the purpose of RestFul Webservices
+
+a web service is a component 
+	that can be accessed from any application, 
+	developed in any language, 
+	running in any platform
+
+web services emerged during 2001 year. 
+	XML was introduced in 1999
+	and SOAP web services were developed using XML content type during 2001
+
+we do not require @ResponseBody annotation. By default every method is like that only
+
+using rest controller methods, we can
+
+GET
+POST
+PUT
+DELETE
+PATCH
+
+These are the types of request mappings in Rest Controller
+
+Spring MVC project can be bootstrapped easily using Spring initializer web site.
+
+	https://start.spring.io/
+
+
+
+1) visit 	https://start.spring.io/
+2) choose language 
+	java
+3) version
+	8
+4) project
+	maven
+5) group id and artifact id
+	anything
+6) war
+7) add dependencies
+	spring web
+
+8) click explore button to download zip
+
+9) unzip
+
+10) copy the location of the folder that contains "pom.xml"
+
+11) in eclipse
+	import-> existing maven project
+		pase the location and import
+
+
+Difference between SPring and Spring boot?
+	convention over configuration
+
+	Spring boot uses conventions
+		means, place the controllers inside the base package (base package is group id)
+		sub packages are welcome
+
+	
+
+instead of using 
+	bean.xml
+	or
+	spring-servlet.xml
+
+we can configure anything in spring boot using
+	application.properties
+	
+this file is present in
+	src/main/resources
+
+some of the properties we use:
+	server.port=8081
+	spring.mvc.view.prefix=/WEB-INF/views/
+	spring.mvc.view.suffix=.jsp
+
+For Spring boot MVC
+
+1) create a folder "WEB-INF/views" INSIDE webapp folder
+2) in application.properties
+	spring.mvc.view.prefix=/WEB-INF/views/
+	spring.mvc.view.suffix=.jsp
+
+3) create controller (not rest controller)
+	
+
+
+
+using
+	GetMapping		read, read(id)
+	PostMapping		create
+	PutMapping		update
+	DeleteMapping		delete
+
+using POSTMAN, we test these methods
+
+
+in our project, 
+	rest controllers are created	(not controller)
+but which dao pattern we use in project?
+
+jt
+ht
+em
+
+jpa repository		(works  only in spring boot)
+
+bean.xml		(no need)
+
+
+class AssociateService
+{
+	@Autowire
+	AssociateRepository dao;
+
+	create
+	read
+	update
+	delete
+
+}
+
+
+
+
+if entity class property name is firstName
+	then column name becomes FIRST_NAME
+to avoid this,
+	spring.jpa.hibernate.naming.physical-strategy=org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+
+
+What is JPA repository?
+	JPA repository is an interface	is compared with crud repository.
+
+by creating an interface that extends JPA repository,
+	and specifying the 
+		entity class name
+		identifier type
+
+	the crud operation methods are automatically generated by jpa repository implementation IOC container
+
+we create a service class that provides methods that will call repository
+
+-----------------------------
+0) spring.datasource.url=jdbc:oracle:thin:@localhost:1522:xe
+spring.datasource.username=sys as sysdba
+spring.datasource.password=password
+
+spring.datasource.hikari.connection-timeout=20000
+spring.datasource.hikari.minimum-idle=5
+spring.datasource.hikari.maximum-pool-size=12
+spring.datasource.hikari.idle-timeout=300000
+spring.datasource.hikari.max-lifetime=1200000
+
+spring.jpa.properties.hibernate.dialect = org.hibernate.dialect.OracleDialect
+spring.jpa.properties.hibernate.id.new_generator_mappings = false
+spring.jpa.properties.hibernate.format_sql = false
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.hibernate.naming.physical-strategy=org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+
+logging.level.org.hibernate.SQL=DEBUG
+logging.level.org.hibernate.type.descriptor.sql.BasicBinder=TRACE
+1) create a spring boot starter project
+	mar-27-demo-jpa-1
+2) pom.xml	(add dependencies)
+	  <dependency>
+		 <groupId>org.springframework.boot</groupId>
+		 <artifactId>spring-boot-starter-data-jpa</artifactId>
+	  </dependency>
+  		<dependency>
+			<groupId>com.oracle.ojdbc</groupId>
+			<artifactId>ojdbc8</artifactId>
+			<version>19.3.0.0</version>
+		</dependency>  	  
+	  <dependency>
+		 <groupId>javax.xml.bind</groupId>
+		 <artifactId>jaxb-api</artifactId>
+		 <version>2.3.0</version>
+	  </dependency>  	      	  	  	  
+          <dependency>
+                 <groupId>org.springframework.boot</groupId>
+                 <artifactId>spring-boot-devtools</artifactId>
+                 <optional>true</optional>
+          </dependency>
+	
+3) create entity class
+	entity.Branch
+package com.example.demo.entity;
+
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+@Entity
+@Table(name="Branch")
+public class Branch {
+	@Id
+	private String bid;
+	private String bname;
+	private String bcity;
+
+
+4) create repo interface
+	package com.example.demo.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import com.example.demo.entity.Branch;
+
+@Repository
+public interface BranchRepository extends JpaRepository<Branch, String>
+{
+
+}
+
+5) Service class
+
+@Component("bs")
+public class BranchService {
+
+	@Autowired
+	private BranchRepository branchRepo;
+	
+	public Branch create(Branch branch) 
+	{
+		return branchRepo.save(branch);
+	}
+	public List<Branch> read() 
+	{
+		return branchRepo.findAll();
+	}
+	public Branch read(String bid) 
+	{
+		return branchRepo.findById(bid).get();
+	}
+	public Branch update(Branch branch) 
+	{
+		return branchRepo.save(branch);
+	}
+	public void delete(String bid) 
+	{
+		branchRepo.delete(read(bid));
+	}
+	
+}
+
+
+6) Controller
+
+@RestController
+@RequestMapping("/branch")
+public class BranchController {
+
+	@Autowired
+	BranchService bs;
+	
+	@GetMapping("/")
+	public List<Branch> getAllBranches()
+	{
+		//display all branches
+		List<Branch> branches = bs.read();
+		return branches;
+	}
+	
+	@GetMapping("/{bid}")			//?bid=B00017 means @RequestParam		but /{bid} means @PathVariable
+	public Branch findBranchById(@PathVariable("bid") String bid)
+	{
+		return bs.read(bid);
+	}
+	
+	@PostMapping("/")
+	public Branch addBranch(@RequestBody Branch branch)
+	{
+		return bs.create(branch);
+	}
+	
+	@PutMapping("/")
+	public Branch modifyBranch(@RequestBody Branch branch)
+	{
+		return bs.update(branch);
+	}
+	
+	@DeleteMapping("/{bid}")
+	public void deleteBranch(@PathVariable("bid") String bid)
+	{
+		bs.delete(bid);
+	}
+}

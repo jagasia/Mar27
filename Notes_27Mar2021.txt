@@ -1,0 +1,92 @@
+1) In Entity class
+	add validation annotations to the properties
+	@Entity
+@Table(name = "VEHICLE")
+public class Vehicle {
+	@Id
+	@GeneratedValue(strategy = GenerationType.SEQUENCE)
+	private int id;
+	@Column(name = "name")
+	@Size(min = 5,message = "Minimum 5 chars.")
+	private String name;
+
+
+2) in JSP, 
+	<form:errors path="name" cssClass="error" />
+
+3) In controller, method
+	add @Valid annotation to ensure the method will validate.
+	and an arg called BindingResult
+
+	if(result.hasErrors)
+		//redirect to the same page. Error message automatically displayed based on annotation in entity
+
+
+public ModelAndView addVehicle(@Valid @ModelAttribute("vehicle")Vehicle vehicle, BindingResult result)
+	{	
+		int x=10;
+		int y=0;
+		if(x==y)
+			throw new NumberFormatException("This is my arith exception");
+		result.addError(new FieldError("vehicle", "name", "Name is invalid according to my rule"));
+		if(result.hasErrors())
+		{
+			System.out.println("Error is there");
+			ModelAndView mv=new ModelAndView();
+			mv.setViewName("vehicle");			
+			List<Vehicle> vehicles = vs.read();
+			mv.addObject("vehicles", vehicles);
+			return mv;
+		}
+
+-----------------------------------------------------------------------------------
+Spring forms Excpetion Handler
+1) configure the exception handler in spring initializer config file
+	<bean class = "org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+      <property name = "exceptionMappings">
+         <props>
+            <prop key = "java.lang.ArithmeticException">
+               arithmetic
+            </prop>
+            <prop key="java.lang.NumberFormatException">
+            	number
+            </prop>
+         </props>
+      </property>
+      <property name = "defaultErrorView" value = "error"/>		<!-- error.jsp -->
+   </bean>
+2) Declare the exception handler in the controller method
+	@RequestMapping(method = RequestMethod.POST, value = "/save", params = "add")
+	@ExceptionHandler({NumberFormatException.class, ArithmeticException.class})
+	public ModelAndView addVehicle(@Valid @ModelAttribute("vehicle")Vehicle vehicle, BindingResult result)
+	{	
+3) Inside the controller method, in some situation, we throw an exception.
+	if that exception is defined in the @Exception handler, then the handling page is found from the config
+	and redirect to that page
+
+-----------------------------
+Task:
+	use the starter project i provide
+		download from git. unzip as folder. 
+		import using
+			"existing maven project" option,
+			navigate to the folder that contain "pom.xml"
+	create / add the model entity class, dao
+	create a controller for that entity
+	
+	1) use validation annotations in the entity class like
+		@NotNull
+		@Size
+		@Min
+		@Max
+		@Pattern		(reg exp)
+	2) introduce new validation error messages in the controller using
+		result.addError
+	3) Create an error page
+	4) configure the error page mapping with some exceptions like
+		NumberFormatException
+		or
+		ArithmeticException
+	5) use @ExceptionHandler in the controller method and
+		throw an exception 
+		and see if it redirects to the  error page
